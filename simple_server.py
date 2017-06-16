@@ -1,20 +1,24 @@
 #!/usr/bin/env python
-"""
+import sys
+
+__doc__ = """
 Very simple HTTP server in python.
 
-Usage::
-    ./dummy-web-server.py [<port>]
+Usage:
+        %s  <port>
 
-Send a GET request::
+
+Send a GET request:
     curl http://localhost
 
-Send a HEAD request::
+Send a HEAD request:
     curl -I http://localhost
 
-Send a POST request::
+Send a POST request:
     curl -d "foo=bar&bin=baz" http://localhost
 
-"""
+"""%(sys.argv[0])
+
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import SocketServer
 
@@ -31,20 +35,19 @@ class S(BaseHTTPRequestHandler):
     def do_HEAD(self):
         self._set_headers()
         
-    def do_POST(self):
-        ## Doesn't do anything with posted data
-        #self._set_headers()
-        #self.wfile.write("<html><body><h1>POST!</h1></body></html>")
-        ## Print posted data 
+    def do_POST(self,fileout=None):
+        ## Write down posted data 
         content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
         post_data = self.rfile.read(content_length) # <--- Gets the data itself
-        with open('post_content.txt','w') as fp:
-            fp.write(post_data)
-        #print post_data
+        if fileout != None:
+            with open('post_content.txt','w') as fp:
+                fp.write(post_data)
+        else:
+            print('--- POST content ---')
+            print(post_data)
+            print('--- ---')
         self._set_headers()
-        #self.wfile.write("<html><body><h1>POST!</h1><pre>" 
-        #                    + post_data + 
-        #                 "</pre></body></html>")
+
 
 def run(server_class=HTTPServer, handler_class=S, port=80):
     server_address = ('', port)
@@ -53,9 +56,8 @@ def run(server_class=HTTPServer, handler_class=S, port=80):
     httpd.serve_forever()
 
 if __name__ == "__main__":
-    from sys import argv
-
-    if len(argv) == 2:
-        run(port=int(argv[1]))
+    import sys
+    if len(sys.argv) == 2:
+        run(port=int(sys.argv[1]))
     else:
-        run()
+        print __doc__
